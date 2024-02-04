@@ -2,12 +2,16 @@ import secure
 import uvicorn
 from config import settings
 from dependencies import validate_token
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI(openapi_url=None)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 csp = secure.ContentSecurityPolicy().default_src("'self'").frame_ancestors("'none'")
 hsts = secure.StrictTransportSecurity().max_age(31536000).include_subdomains()
@@ -60,6 +64,13 @@ def protected():
 @app.get("/api/messages/admin", dependencies=[Depends(validate_token)])
 def admin():
     return {"text": "This is an admin message."}
+
+
+@app.get("/", response_class=HTMLResponse)
+def homepage(request: Request):
+    return templates.TemplateResponse(
+        name="index.html", context={"request": request, "message": "Hello World..."}
+    )
 
 
 if __name__ == "__main__":
