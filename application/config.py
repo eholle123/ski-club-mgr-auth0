@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     client_origin_url: str
     port: int
     reload: bool
+    database_url: str
 
     @classmethod
     @validator("client_origin_url", "auth0_audience", "auth0_domain")

@@ -1,15 +1,33 @@
 import secure
 import uvicorn
+import model
+import crud
+from contextlib import asynccontextmanager
 from config import settings
-from dependencies import validate_token
+from db import create_tables
+from dependencies import get_engine, validate_token
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from sqlmodel import create_engine, Session
+from sqlalchemy.engine.base import Engine
 
-app = FastAPI(openapi_url=None)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup behavior: this code runs when app is created
+    # create database engine singleton
+    engine = create_engine(settings.database_url, echo=True)
+    app.state.engine = engine
+    create_tables(engine)
+    yield
+    # shutdown behavior: this code runs when app is deleted
+    # do not need to close the engine connection
+
+
+app = FastAPI(openapi_url=None, lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -67,10 +85,18 @@ def admin():
 
 
 @app.get("/", response_class=HTMLResponse)
-def homepage(request: Request):
+def homepage(request: Request, engine: Engine = Depends(get_engine)):
+    with Session(engine) as session:
+        ski_passes = crud.read_all_ski_passes(session)
     return templates.TemplateResponse(
-        name="index.html", context={"request": request, "message": "Hello World..."}
+        name="index.html", context={"request": request, "message": "Ski Club Manager", "ski_passes": ski_passes}
     )
+
+
+@app.get("/api/ski_pass")
+def get_all_ski_passes(engine: Engine = Depends(get_engine)) -> list[model.SkiPass]:
+    with Session(engine) as session:
+        return crud.read_all_ski_passes(session)
 
 
 if __name__ == "__main__":
