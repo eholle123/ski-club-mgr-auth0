@@ -1,3 +1,6 @@
+*.http
+
+
 # Created by https://www.toptal.com/developers/gitignore/api/dotenv,venv,python,jetbrains+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=dotenv,venv,python,jetbrains+all
 

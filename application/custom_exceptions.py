@@ -21,3 +21,11 @@ class UnableCredentialsException(HTTPException):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to verify credentials",
         )
+
+
+class AlreadyExistsException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Resource already exists",
+        )
