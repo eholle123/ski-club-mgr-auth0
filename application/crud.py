@@ -1,4 +1,5 @@
 import model
+from fastapi import HTTPException
 from sqlmodel import Session, select
 
 
@@ -19,6 +20,16 @@ def read_ski_pass(session: Session, serial_number: str) -> model.SkiPass:
     statement = select(model.SkiPass).where(model.SkiPass.serial_number == serial_number)
     results = session.exec(statement)
     ski_pass = results.first()
+    return ski_pass
+
+
+def invalidate_ski_pass(session: Session, serial_number: str) -> model.SkiPass:
+    ski_pass = read_ski_pass(session, serial_number)
+
+    if ski_pass is None:
+        raise HTTPException(status_code=404, detail=f"No ski pass with serial number {serial_number}")
+    
+    ski_pass.is_invalidated = True
     return ski_pass
 
 def delete_ski_pass(session: Session, serial_number: str) -> None:

@@ -120,6 +120,16 @@ def get_ski_pass(serial_number: str, engine: Engine = Depends(get_engine)) -> mo
         return crud.read_ski_pass(session, serial_number)
 
 
+@app.put("/api/ski_pass/{serial_number}")
+def invalidate_ski_pass(serial_number: str, engine: Engine = Depends(get_engine)) -> schema.SkiPassPublic:
+    with Session(engine) as session:
+        invalidated_ski_pass = crud.invalidate_ski_pass(session, serial_number)
+        session.commit()
+        session.refresh(invalidated_ski_pass)
+    return schema.SkiPassPublic(
+        serial_number=invalidated_ski_pass.serial_number, is_invalidated=invalidated_ski_pass.is_invalidated
+    )
+
 @app.delete("/api/ski_pass/{serial_number}")
 def delete_ski_pass(serial_number: str, engine: Engine = Depends(get_engine)):
     with Session(engine) as session:
