@@ -96,6 +96,13 @@ def homepage(request: Request, engine: Engine = Depends(get_engine)):
     )
 
 
+@app.get("/reservation", response_class=HTMLResponse)
+def reservation_page(request: Request):
+    return templates.TemplateResponse(
+        name="reservation.html", context={"request": request}
+    )
+
+
 @app.post("/api/ski_pass")
 def create_ski_pass(ski_pass: schema.SkiPassCreate, engine: Engine = Depends(get_engine)) -> schema.SkiPassPublic:
     try:

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ski Club Manager</title>
+    <link href="{{ url_for('static', path='/bootstrap.min.css') }}" rel="stylesheet">
+    {% endblock %}
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+        {% block nav %}
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('homepage') }}">Ski Club Home</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
+                aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('reservation_page') }}">Reserve
+                            Ski Passes & Check Calendar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Drop Reserved Ski Passes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Report Problem</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {% endblock %}
+    </nav>
+
+    <main class="container">
+        {% block main %}
+        {% endblock %}
+    </main>
+    <script src="{{ url_for('static', path='/bootstrap.bundle.min.js') }}"></script>
+</body>
+
+</html>
