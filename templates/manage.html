@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Ski Passes{% endblock %}
+
+{% block main %}
+<div class="bg-body-tertiary p-5 rounded">
+    <h1>Manage Ski Passes</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Serial Number</th>
+                <th scope="col">Valid Ski Pass</th>
+                <th scope="col">Invalidate</th>
+                <th scope="col">Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ski_pass in ski_passes %}
+            <tr>
+                <th scope="row">{{ ski_pass.serial_number }}</th>
+                {% if ski_pass.is_invalidated %}
+                <td>No</td>
+                {% else %}
+                <td>Yes</td>
+                {% endif %}
+                <td>
+                    <form method="post"
+                        action="{{ url_for('manage_page_invalidate', serial_number=ski_pass.serial_number) }}">
+                        <button type="submit" class="btn btn-warning">Invalidate</button>
+                    </form>
+                </td>
+                <td>
+                    <form method="post"
+                        action="{{ url_for('manage_page_delete', serial_number=ski_pass.serial_number) }}">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="post" action="{{ url_for('manage_page_add')}}">
+        <div class="mb-3">
+            <label for="serial_number" class="form-label">Serial Number</label>
+            <input type="text" class="form-control" id="serial_number" name="serial_number">
+        </div>
+        <button type="submit" class="btn btn-primary">Add Ski Pass</button>
+    </form>
+</div>
+{% endblock %}

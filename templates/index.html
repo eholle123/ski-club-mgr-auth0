@@ -14,7 +14,7 @@
         <tbody>
             {% for ski_pass in ski_passes %}
             <tr {% if ski_pass.is_invalidated %} class="text-bg-warning" {% else %} class="text-bg-success" {% endif %}>
-                <th scope=" row">{{ ski_pass.serial_number }}</th>
+                <th scope="row">{{ ski_pass.serial_number }}</th>
                 {% if ski_pass.is_invalidated %}
                 <td>No</td>
                 {% else %}

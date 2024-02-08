@@ -8,7 +8,7 @@ from config import settings
 from custom_exceptions import AlreadyExistsException
 from db import create_tables
 from dependencies import get_engine, validate_token
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, HTMLResponse
@@ -17,6 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlmodel import create_engine, Session
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.exc import IntegrityError
+from typing import Annotated
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -100,6 +101,48 @@ def homepage(request: Request, engine: Engine = Depends(get_engine)):
 def reservation_page(request: Request):
     return templates.TemplateResponse(
         name="reservation.html", context={"request": request}
+    )
+
+
+@app.get("/manage", response_class=HTMLResponse)
+def manage_page(request: Request, engine: Engine = Depends(get_engine)):
+    with Session(engine) as session:
+        ski_passes = crud.read_all_ski_passes(session)
+    return templates.TemplateResponse(
+        name="manage.html", context={"request": request, "ski_passes": ski_passes}
+    )
+
+
+@app.post("/manage/add", response_class=HTMLResponse)
+def manage_page_add(serial_number: Annotated[str, Form()], request: Request, engine: Engine = Depends(get_engine)):
+    with Session(engine) as session:
+        crud.create_ski_pass(session, serial_number)
+        session.commit()
+        ski_passes = crud.read_all_ski_passes(session)
+    return templates.TemplateResponse(
+        name="manage.html", context={"request": request, "ski_passes": ski_passes}
+    )
+
+
+@app.post("/manage/invalidate/{serial_number}", response_class=HTMLResponse)
+def manage_page_invalidate(serial_number: str, request: Request, engine: Engine = Depends(get_engine)):
+    with Session(engine) as session:
+        crud.invalidate_ski_pass(session, serial_number)
+        session.commit()
+        ski_passes = crud.read_all_ski_passes(session)
+    return templates.TemplateResponse(
+        name="manage.html", context={"request": request, "ski_passes": ski_passes}
+    )
+
+
+@app.post("/manage/delete/{serial_number}", response_class=HTMLResponse)
+def manage_page_delete(serial_number: str, request: Request, engine: Engine = Depends(get_engine)):
+    with Session(engine) as session:
+        crud.delete_ski_pass(session, serial_number)
+        session.commit()
+        ski_passes = crud.read_all_ski_passes(session)
+    return templates.TemplateResponse(
+        name="manage.html", context={"request": request, "ski_passes": ski_passes}
     )
 
 
