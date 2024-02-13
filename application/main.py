@@ -1,13 +1,11 @@
 import secure
 import uvicorn
-import model
 import crud
-import schema
+import rest_api
 from contextlib import asynccontextmanager
 from config import settings
-from custom_exceptions import AlreadyExistsException
 from db import create_tables
-from dependencies import get_engine, validate_token
+from dependencies import get_engine
 from fastapi import Depends, FastAPI, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -16,7 +14,6 @@ from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlmodel import create_engine, Session
 from sqlalchemy.engine.base import Engine
-from sqlalchemy.exc import IntegrityError
 from typing import Annotated
 
 @asynccontextmanager
@@ -73,19 +70,8 @@ async def http_exception_handler(request, exc):
     return JSONResponse({"message": message}, status_code=exc.status_code)
 
 
-@app.get("/api/messages/public")
-def public():
-    return {"text": "This is a public message."}
-
-
-@app.get("/api/messages/protected", dependencies=[Depends(validate_token)])
-def protected():
-    return {"text": "This is a protected message."}
-
-
-@app.get("/api/messages/admin", dependencies=[Depends(validate_token)])
-def admin():
-    return {"text": "This is an admin message."}
+# Include /api routes
+app.include_router(rest_api.router, prefix="/api")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -145,48 +131,6 @@ def manage_page_delete(serial_number: str, request: Request, engine: Engine = De
         name="manage.html", context={"request": request, "ski_passes": ski_passes}
     )
 
-
-@app.post("/api/ski_pass")
-def create_ski_pass(ski_pass: schema.SkiPassCreate, engine: Engine = Depends(get_engine)) -> schema.SkiPassPublic:
-    try:
-        with Session(engine) as session:
-            ski_pass_created = crud.create_ski_pass(session, ski_pass.serial_number)
-            session.commit()
-            session.refresh(ski_pass_created)
-            return schema.SkiPassPublic(serial_number=ski_pass_created.serial_number, is_invalidated=ski_pass_created.is_invalidated)
-    except IntegrityError:
-        raise AlreadyExistsException
-
-
-@app.get("/api/ski_pass")
-def get_all_ski_passes(engine: Engine = Depends(get_engine)) -> list[model.SkiPass]:
-    with Session(engine) as session:
-        return crud.read_all_ski_passes(session)
-
-
-@app.get("/api/ski_pass/{serial_number}")
-def get_ski_pass(serial_number: str, engine: Engine = Depends(get_engine)) -> model.SkiPass:
-    with Session(engine) as session:
-        return crud.read_ski_pass(session, serial_number)
-
-
-@app.put("/api/ski_pass/{serial_number}")
-def invalidate_ski_pass(serial_number: str, engine: Engine = Depends(get_engine)) -> schema.SkiPassPublic:
-    with Session(engine) as session:
-        invalidated_ski_pass = crud.invalidate_ski_pass(session, serial_number)
-        session.commit()
-        session.refresh(invalidated_ski_pass)
-    return schema.SkiPassPublic(
-        serial_number=invalidated_ski_pass.serial_number, is_invalidated=invalidated_ski_pass.is_invalidated
-    )
-
-@app.delete("/api/ski_pass/{serial_number}")
-def delete_ski_pass(serial_number: str, engine: Engine = Depends(get_engine)):
-    with Session(engine) as session:
-        crud.delete_ski_pass(session, serial_number)
-        session.commit()
-    return {"message": "Success"}
-    
 
 if __name__ == "__main__":
     uvicorn.run(
