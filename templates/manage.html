@@ -26,7 +26,8 @@
                 <td>
                     <form method="post"
                         action="{{ url_for('manage_page_invalidate', serial_number=ski_pass.serial_number) }}">
-                        <button type="submit" class="btn btn-warning">Invalidate</button>
+                        <button type="submit" class="btn btn-warning" {% if ski_pass.is_invalidated %}disabled{% endif
+                            %}>Invalidate</button>
                     </form>
                 </td>
                 <td>
